@@ -5,20 +5,23 @@ import TableRows from './components/TableRow';
 import PageNumbers from './components/PageNumbers';
 import './App.css';
 
+const DEFAULT_QUERY = 'redux';
 
-const DEFAULT_QUERY = '';
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
 
-const quizObj = document.getElementById("quiz").value;
+const url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${DEFAULT_QUERY}`;
 
 class App extends Component {
 
     constructor(props){
         super(props);
 
-        this.rows = JSON.parse(quizObj);
+        this.rows = null;
 
         this.state = {
-            result: [],
+            result: null,
             rowData: [],
             searchKey: '',
             searchTerm: DEFAULT_QUERY,
@@ -29,7 +32,8 @@ class App extends Component {
             selected: '',
         };
 
-        this.fetchQuizResultsPage = this.fetchQuizResultsPage.bind(this);
+        this.fetchTableResultsPage = this.fetchTableResultsPage.bind(this);
+        this.setSearchTopStories = this.setSearchTopStories.bind(this);
         this.onSearchChange = this.onSearchChange.bind(this);
         this.sortRowsBy = this.sortRowsBy.bind(this);
         this.onDismiss = this.onDismiss.bind(this);
@@ -40,29 +44,41 @@ class App extends Component {
     }
 
     componentDidMount(){
-        let {result} = this.state;
-        let resultCount = result.length;
 
-        if(resultCount <= 0){
-            result = this.rows;
-        }
-        this.fetchQuizResultsPage(result);
+        const { searchTerm } = this.state;
+
+        this.fetchTableResultsPage(searchTerm);
+        // let resultCount = result.length;
+        //
+        // if(resultCount <= 0){
+        //     result = this.rows;
+        // }
     }
 
-    fetchQuizResultsPage(newResult){
-        let {currentPage, rowsPerPage, result} = this.state;
+    setSearchTopStories(result) {
 
-        let rowData = [];
+        const { currentPage, rowsPerPage} = this.state;
 
-        for(let i = 0; i < rowsPerPage; i++){
-            rowData.push(newResult[i]);
-        }
-        this.setState({result: newResult, rowData: rowData, currentPage: currentPage, rowsPerPage: rowsPerPage});
+        // let numberOfHits = newResult.length;
+        // let result = newResult;
+        //
+        // let rowData = [];
+        //
+        // for(let i = 0; i < rowsPerPage; i++) {
+        //     rowData.push(result[i]);
+        // }
 
-        if(result.length > 0){
-            this.renderRows(currentPage, rowsPerPage);
-        }
+       // this.setState({result: newResult, rowData: rowData, currentPage: currentPage, rowsPerPage: rowsPerPage});
 
+        this.renderRows(result, currentPage, rowsPerPage);
+    }
+
+
+
+    fetchTableResultsPage(searchTerm){
+        fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}`)
+            .then(response => response.json())
+            .then(result => this.setSearchTopStories(result.hits));
     }
 
     isActive(number){
@@ -73,22 +89,22 @@ class App extends Component {
         }
     }
 
-    renderRows(currentPage, rowsPerPage){
-        const currentRows = [];
+    renderRows(result, currentPage, rowsPerPage){
+        const rowData = [];
 
-        const { result } = this.state;
+
+        let numberOfHits = result.length;
 
         let rowIndex = 0;
         let rowEndIndex = 0;
 
-        if(result.length % rowsPerPage === 0){
-
+        if(numberOfHits % rowsPerPage === 0){
             rowIndex = (currentPage * rowsPerPage) - rowsPerPage;
 
             rowEndIndex = rowIndex + rowsPerPage;
 
             for(let i = rowIndex; i < rowEndIndex; i++){
-                currentRows.push(result[i]);
+                rowData.push(result[i]);
             }
 
         }else{
@@ -97,29 +113,29 @@ class App extends Component {
 
             rowEndIndex = rowIndex + rowsPerPage;
 
-            if(rowEndIndex <= result.length){
+            if(rowEndIndex <= numberOfHits){
                 for(let i = rowIndex; i < rowEndIndex; i++){
-                    currentRows.push(result[i]);
+                    rowData.push(result[i]);
             }
             }else{
 
-                let pageRemainder = result.length % rowsPerPage;
+                let pageRemainder = numberOfHits % rowsPerPage;
 
                 rowEndIndex = rowIndex + pageRemainder;
 
                 for(let i = rowIndex; i < rowEndIndex; i++){
-                    currentRows.push(result[i]);
+                    rowData.push(result[i]);
                 }
             }
         }
-
-        this.setState({rowData: currentRows, currentPage: currentPage, rowsPerPage: rowsPerPage});
+        this.setState({result, rowData, numberOfHits, currentPage, rowsPerPage});
+        //this.setState({result: result, rowData: currentRows, currentPage: currentPage, rowsPerPage: rowsPerPage});
     }
 
     handlePageClick(event){
-        const { rowsPerPage } = this.state;
+        const { result, rowsPerPage } = this.state;
 
-        this.renderRows(Number(event.target.id), rowsPerPage);
+        this.renderRows(result, Number(event.target.id), rowsPerPage);
     }
 
     onChangePage(pageOfItems) {
@@ -168,10 +184,8 @@ class App extends Component {
 
             const filteredList = result.filter(function(fetchData){
                     return (!filterBy ||
-                    fetchData.firstName.toString().toLowerCase().includes(filterBy.toLowerCase()) ||
-                    fetchData.lastName.toString().toLowerCase().includes(filterBy.toLowerCase())  ||
-                    fetchData.quizTitle.toString().toLowerCase().includes(filterBy.toLowerCase()) ||
-                    fetchData.gradePercent.toString().toLowerCase().includes(filterBy.toLowerCase()));
+                    fetchData.author.toString().toLowerCase().includes(filterBy.toLowerCase()) ||
+                    fetchData.title.toString().toLowerCase().includes(filterBy.toLowerCase()));
             });
 
             let currentRows = [];
@@ -186,26 +200,27 @@ class App extends Component {
         }
     }
 
-    onDismiss(index){
-        const updatedList = this.state.result.slice();
-        updatedList.splice(index, 1);
-        this.fetchQuizResultsPage(updatedList);
+    onDismiss(id){
+        const isNotId = result => result.objectID !== id;
+        const updatedHits = this.state.result.filter(isNotId);
+        //this.setState({result: updatedHits, rowData: updatedHits});
+        this.setSearchTopStories(updatedHits);
     }
 
     render() {
 
     const divSearchStyle = { 'marginBottom': '20px' };
 
-    const { searchTerm, rowData, result, rowsPerPage } = this.state;
+    const { searchTerm, rowData, result, numberOfHits, rowsPerPage } = this.state;
 
     //Logic for displaying page numbers
     const pageNumbers = [];
 
-    for(let i = 1; i <= Math.ceil(result.length / rowsPerPage); i++){
+    for(let i = 1; i <= Math.ceil(numberOfHits / rowsPerPage); i++){
         pageNumbers.push(i);
     }
 
-    if(!rowData){
+    if(!result){
         return null;
     }
 
@@ -218,7 +233,8 @@ class App extends Component {
     }
 
     return (
-      <div className="App">
+        <div className="App page">
+            <div className="interactions">
           <div style={divSearchStyle} >
           <Search
               value={searchTerm}
@@ -228,51 +244,37 @@ class App extends Component {
           </Search>
               </div>
           <div className="panel panel-default">
-              <div className="panel-heading">Quiz Results for Newsletters</div>
+              <div className="panel-heading">Table of People</div>
               { rowData &&
                 <table className="table">
                   <tbody>
                   <tr>
                   <TableHeader
-                  dataKey="firstName"
-                  label = "First Name"
+                      dataKey="row"
+                      label="Row"
+                      sortRowsBy = {this.sortRowsBy}
+                      sortDirArrow = {(this.state.sortBy === 'row' ? sortDirArrow : '')}
+                  />
+                  <TableHeader
+                  dataKey="title"
+                  label="Title"
                   sortRowsBy = {this.sortRowsBy}
-                  sortDirArrow = {(this.state.sortBy === 'firstName' ? sortDirArrow : '')}
+                  sortDirArrow = {(this.state.sortBy === 'title' ? sortDirArrow : '')}
                   />
                   <TableHeader
-                  dataKey="lastName"
-                  label = "Last Name"
-                  sortRowsBy = {this.sortRowsBy}
-                  sortDirArrow = {(this.state.sortBy === 'lastName' ? sortDirArrow : '')}
+                  dataKey="author"
+                  label="Author"
+                  sortRowsBy={this.sortRowsBy}
+                  sortDirArrow={(this.state.sortBy === 'author' ? sortDirArrow : '')}
                   />
                   <TableHeader
-                  dataKey="address"
-                  label = "Address"
+                  dataKey="comments"
+                  label = "Comments"
                   sortRowsBy = {null}
                   />
                   <TableHeader
-                  dataKey="newsletterTitle"
-                  label = "Newsletter Article"
-                  sortRowsBy = {null}
-                  />
-                  <TableHeader
-                  dataKey="quizTitle"
-                  label = "Quiz"
-                  sortRowsBy = {null}
-                  />
-                  <TableHeader
-                  dataKey="gradePercent"
-                  label = "Grade"
-                  sortRowsBy = {null}
-                  />
-                  <TableHeader
-                  dataKey="createdDate"
-                  label = "Submission Date"
-                  sortRowsBy = {null}
-                  />
-                  <TableHeader
-                  dataKey="downloadCertificate"
-                  label = "Download Certificate"
+                  dataKey="points"
+                  label = "Points"
                   sortRowsBy = {null}
                   />
                   <TableHeader
@@ -283,11 +285,11 @@ class App extends Component {
                   </tr>
                   {
                       rowData.map((tableRow, index) =>
-                          <TableRows
-                              quiz={tableRow}
+                        <TableRows
+                              key={tableRow.objectID}
                               index={index}
+                              item={tableRow}
                               onDismiss={this.onDismiss}
-                              key={index}
                           />
                       )
                   }
@@ -307,7 +309,8 @@ class App extends Component {
                   )
               }
           </ul>
-      </div>
+            </div>
+        </div>
 
     );
   }

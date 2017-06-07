@@ -1,9 +1,5 @@
-/**
- * Created by grg3 on 6/1/17.
- */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import Moment from 'moment';
 import Button from './Button';
 
 
@@ -11,55 +7,37 @@ class TableRow extends Component {
 
     render() {
 
-    const { quiz, index, onDismiss} = this.props;
+    const { item, onDismiss, index} = this.props;
 
     return (
             <tr>
-                <td data-title="'firstName'" >
-                    { quiz.firstName }
+                <td style={{ width: '10%' }} data-title="'title'" >
+                    { index+1 }
                 </td>
-                <td data-title="'lastName'">
-                    { quiz.lastName }
+                <td style={{ width: '40%' }} data-title="'title'" >
+                    <a href={item.url}>{item.title}</a>
                 </td>
-                <td data-title="'Address'">
-                    { quiz.homeAddress },  { quiz.city }, { quiz.zipCode }
+                <td style={{ width: '30%' }} data-title="'author'">
+                      {item.author}
                 </td>
-                <td data-title="'Newsletter Article'">
-                    {quiz.newsletterTitle}
+                <td style={{ width: '10%' }} data-title="'comments'">
+                    {item.num_comments}
                 </td>
-                <td data-title="'Quiz'">
-                    {quiz.quizTitle}
-                </td>
-                <td data-title="'Grade'">
-                    {quiz.gradePercent}
-                </td>
-                <td data-title="'Date'" >
-                    { Moment(quiz.createdAt.date).format('MM/DD/YY ') }
-                </td>
-                <td>
-                    { certificateAvailable(quiz.gradePercent, quiz.passingGrade) }
-                </td>
-                <td>
-                            <span>
+    
+                  <td style={{ width: '10%' }} data-title="'points'">
+                    {item.points}
+                  </td>
+                    <td style={{ width: '10%' }} data-title="'onDismiss'">
+                    <span>
                             <Button
-                                onClick={ () => onDismiss(index)}
+                                onClick={() => onDismiss(item.objectID)} className="button-inline"
                             > Dismiss
-              </Button>
-            </span>
+                            </Button>
+                     </span>
                 </td>
             </tr>
         );
     }
 }
 
-function certificateAvailable(gradePercent, passingGrade){
-    if(gradePercent >= passingGrade){
-        return  <span> <button className="btn btn-primary btn-md">
-                        <i className="fa fa-btn fa-download"></i>
-                    Download Certificate</button>
-                </span>;
-    }else{
-        return  <span>Not available</span>;
-    }
-}
 export default TableRow;

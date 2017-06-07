@@ -1,9 +1,3 @@
-/**
- * Created by grg3 on 6/6/17.
- */
-/**
- * Created by grg3 on 5/31/17.
- */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 

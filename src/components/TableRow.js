@@ -14,20 +14,20 @@ class TableRow extends Component {
                 <td style={{ width: '10%' }} data-title="'title'" >
                     { index+1 }
                 </td>
-                <td style={{ width: '40%' }} data-title="'title'" >
+                <td data-title="'title'" >
                     <a href={item.url}>{item.title}</a>
                 </td>
-                <td style={{ width: '30%' }} data-title="'author'">
+                <td data-title="'author'">
                       {item.author}
                 </td>
-                <td style={{ width: '10%' }} data-title="'comments'">
+                <td data-title="'comments'">
                     {item.num_comments}
                 </td>
     
-                  <td style={{ width: '10%' }} data-title="'points'">
+                  <td data-title="'points'">
                     {item.points}
                   </td>
-                    <td style={{ width: '10%' }} data-title="'onDismiss'">
+                    <td data-title="'onDismiss'">
                     <span>
                             <Button
                                 onClick={() => onDismiss(item.objectID)} className="button-inline"

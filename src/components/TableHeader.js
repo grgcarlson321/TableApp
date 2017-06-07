@@ -5,10 +5,10 @@ import PropTypes from 'prop-types';
 class TableHeader extends Component {
 
     render() {
-        const { dataKey, label, sortRowsBy, sortDirArrow } = this.props;
+        const { rowStyle, dataKey, label, sortRowsBy, sortDirArrow } = this.props;
 
         return (
-            <th className="myTableHeader">
+            <th style={rowStyle} className="myTableHeader">
                 { isSortedCol(sortRowsBy, dataKey, label) }
                 <span>{ sortDirArrow }</span>
             </th>

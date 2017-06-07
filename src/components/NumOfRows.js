@@ -2,34 +2,35 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
 
-class Search extends Component {
+class NumOfRows extends Component {
+
     render() {
-        const { value, onChange, onSubmit, children } = this.props;
+        const { value, onRowsSubmit, handleRowChange, children } = this.props;
+
+
         return (
-            <form onSubmit={onSubmit}>
+            <form onSubmit={onRowsSubmit}>
                 { children }
                 <input
                     type="text"
                     value={value}
-                    onChange={ onChange }
+                    onChange={ handleRowChange }
                 />
                 <button type="submit">
-                    {children}
+                {children}
                 </button>
             </form>
         );
     }
 }
-Search.propDefaults = {
+NumOfRows.propDefaults = {
     value: '',
 }
-Search.propTypes = {
+NumOfRows.propTypes = {
     value: PropTypes.string,
-    onChange: PropTypes.func.isRequired,
+    onRowsSubmit: PropTypes.func.isRequired,
+    handleRowChange: PropTypes.func.isRequired,
     children: PropTypes.node.isRequired,
 }
 
-export default Search;
-
-
-
+export default NumOfRows;

@@ -57,20 +57,9 @@ class App extends Component {
 
     setSearchTopStories(result) {
 
-        const { currentPage, rowsPerPage} = this.state;
+        const { sortDir, sortBy, currentPage, rowsPerPage} = this.state;
 
-        // let numberOfHits = newResult.length;
-        // let result = newResult;
-        //
-        // let rowData = [];
-        //
-        // for(let i = 0; i < rowsPerPage; i++) {
-        //     rowData.push(result[i]);
-        // }
-
-       // this.setState({result: newResult, rowData: rowData, currentPage: currentPage, rowsPerPage: rowsPerPage});
-
-        this.renderRows(result, currentPage, rowsPerPage);
+        this.renderRows(result, sortDir, sortBy, currentPage, rowsPerPage);
     }
 
 
@@ -89,7 +78,7 @@ class App extends Component {
         }
     }
 
-    renderRows(result, currentPage, rowsPerPage){
+    renderRows(result, sortDir, sortBy, currentPage, rowsPerPage){
         const rowData = [];
 
 
@@ -128,14 +117,14 @@ class App extends Component {
                 }
             }
         }
-        this.setState({result, rowData, numberOfHits, currentPage, rowsPerPage});
-        //this.setState({result: result, rowData: currentRows, currentPage: currentPage, rowsPerPage: rowsPerPage});
+        
+        this.setState({result, rowData, numberOfHits, sortDir, sortBy, currentPage, rowsPerPage});
     }
 
     handlePageClick(event){
-        const { result, rowsPerPage } = this.state;
+        const { result, rowsPerPage, sortDir, sortBy } = this.state;
 
-        this.renderRows(result, Number(event.target.id), rowsPerPage);
+        this.renderRows(result, sortDir, sortBy, Number(event.target.id), rowsPerPage);
     }
 
     onChangePage(pageOfItems) {
@@ -145,7 +134,7 @@ class App extends Component {
 
     sortRowsBy(sortBy){
 
-        let { sortDir, result, currentPage, rowsPerPage } = this.state;
+        let { result, sortDir, currentPage, rowsPerPage } = this.state;
 
         if(sortBy === this.state.sortBy){
             sortDir = this.state.sortDir === 'ASC' ? 'DESC': 'ASC';
@@ -167,9 +156,7 @@ class App extends Component {
             return sortVal;
         });
 
-        this.setState({result: result, sortDir: sortDir, sortBy: sortBy});
-
-        this.renderRows(currentPage, rowsPerPage);
+        this.renderRows(result, sortDir, sortBy, currentPage, rowsPerPage);
     }
 
     onSearchChange(e){

@@ -9,11 +9,13 @@ import './App.css';
 
 const DEFAULT_QUERY = 'redux';
 const DEFAULT_PAGE = 0;
+const DEFAULT_HPP = '100';
 
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
 const PARAM_PAGE = 'page=';
+const PARAM_HPP = 'hitsPerPage=';
 
 
 const url = `${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${DEFAULT_QUERY}&${PARAM_PAGE}`;
@@ -56,7 +58,6 @@ class App extends Component {
 
     setSearchTopStories(result) {
 
-
         const { page, hits } = result;
 
         const oldHits = page !== 0
@@ -74,7 +75,7 @@ class App extends Component {
     }
 
     fetchTableResultsPage(searchTerm, page){
-        fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}`)
+        fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
             .then(response => response.json())
             .then(result => this.setSearchTopStories(result));
     }
@@ -84,46 +85,39 @@ class App extends Component {
         const rowData = [];
         let numberOfHits = result.length;
 
-        let rowIndex = 0;
-        let rowEndIndex = 0;
+        //where are we
+        let rowIndex = (currentPage * rowsPerPage) - rowsPerPage;
 
-        if(numberOfHits % rowsPerPage === 0){
-            rowIndex = (currentPage * rowsPerPage) - rowsPerPage;
+        //where is the end
+        let rowEndIndex = rowIndex + rowsPerPage;
 
-            rowEndIndex = rowIndex + rowsPerPage;
+        //handle display of full page of rows
+        if(numberOfHits % rowsPerPage === 0 || rowEndIndex <= numberOfHits){
+            for(let i = rowIndex; i < rowEndIndex; i++){
+                rowData.push(result[i]);
+            }
+        }
+        //handle the last page display of rows
+        else{
+
+            //figure out the end index
+            let pageRemainder = numberOfHits % rowsPerPage;
+
+            rowEndIndex = rowIndex + pageRemainder;
 
             for(let i = rowIndex; i < rowEndIndex; i++){
                 rowData.push(result[i]);
             }
-
-        }else{
-
-            rowIndex = (currentPage * rowsPerPage) - rowsPerPage;
-
-            rowEndIndex = rowIndex + rowsPerPage;
-
-            if(rowEndIndex <= numberOfHits){
-                for(let i = rowIndex; i < rowEndIndex; i++){
-                    rowData.push(result[i]);
-            }
-            }else{
-
-                let pageRemainder = numberOfHits % rowsPerPage;
-
-                rowEndIndex = rowIndex + pageRemainder;
-
-                for(let i = rowIndex; i < rowEndIndex; i++){
-                    rowData.push(result[i]);
-                }
-            }
         }
 
+        this.setState({rowData, currentPage, rowsPerPage});
+
+        // setup the table row display
         this.setState({result, rowData, numberOfHits, sortDir, sortBy, currentPage, rowsPerPage});
     }
 
     handlePageClick(event){
         const { result, rowsPerPage, sortDir, sortBy } = this.state;
-
         this.renderRows(result, sortDir, sortBy, Number(event.target.id), rowsPerPage);
     }
 
@@ -163,9 +157,7 @@ class App extends Component {
         e.preventDefault();
         const { result, sortDir, sortBy, rowsPerPageString } = this.state;
 
-        let value = rowsPerPageString;
-
-        let setNumRows = parseInt(value);
+        let setNumRows = parseInt(rowsPerPageString);
 
         this.renderRows(result, sortDir, sortBy, 1, setNumRows);
     }
